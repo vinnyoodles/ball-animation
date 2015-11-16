@@ -14,6 +14,7 @@ function addBall() {
     y:     Math.random() * height,
     dx:    Math.random() * 10,
     dy:    Math.random() * 10,
+    id:    ball_array.length,
     color: getRandomColor()
   });
 }
@@ -35,19 +36,41 @@ function paint() {
     ctx.fill();
     ctx.closePath();
 
-    if(ball.x + ball.dx > width - ballRadius || ball.x + ball.dx < ballRadius) {
-      ball.dx = -ball.dx;
-    }
-    if(ball.y + ball.dy > height - ballRadius || ball.y + ball.dy < ballRadius) {
-      ball.dy = -ball.dy;
-    }
-
+    detectCollision(ball);
 
     ball.x += ball.dx;
     ball.y += ball.dy;
   }
 }
 
+//detect collision with walls and other balls
+function detectCollision(ball) {
+    if (ball.x + ball.dx > width - ballRadius || ball.x + ball.dx < ballRadius) {
+      ball.dx = -ball.dx;
+        console.log('detected wall and ball collision');
+    }
+    if (ball.y + ball.dy > height - ballRadius || ball.y + ball.dy < ballRadius) {
+      ball.dy = -ball.dy;
+        console.log('detected wall and ball collision');
+    }
+    for (var i = 0; i < ball_array.length; i++) {
+      console.log(ball.id + ", " + i);
+      if (ball.id != i) {
+        var otherBall = ball_array[i];
+        var dx = ball.x - otherBall.x; 
+        var dy = ball.y - otherBall.y;
+        var dr = ballRadius * 2;
+        console.log(dx + ", " + dy);
+        if ((Math.pow(dx, 2) + Math.pow(dy, 2)) < Math.pow(dr, 2)) {
+          ball.dy = -ball.dy;
+          ball.dx = -ball.dx;
+          console.log('detected ball and ball collision');
+        }
+      }
+    }
+}
+
+//return random color code
 function getRandomColor() {
   var letters = '0123456789ABCDEF'.split('');
   var color = '#';
@@ -61,4 +84,4 @@ function getRandomColor() {
 canvas.addEventListener("click", addBall);
 
 //paint canvas
-setInterval(paint, 10);
+setInterval(paint, 20);
