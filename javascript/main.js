@@ -10,10 +10,11 @@ var ball_array = [];
 //functions
 function addBall() {
   ball_array.push({
-    x:  Math.random() * width, 
-    y:  Math.random() * height,
-    dx: Math.random(),
-    dy: Math.random()
+    x:     Math.random() * width, 
+    y:     Math.random() * height,
+    dx:    Math.random() * 10,
+    dy:    Math.random() * 10,
+    color: getRandomColor()
   });
 }
 
@@ -30,7 +31,7 @@ function paint() {
     var ball = ball_array[i];
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI*2);
-    ctx.fillStyle = "blue";
+    ctx.fillStyle = ball.color;
     ctx.fill();
     ctx.closePath();
 
@@ -45,6 +46,15 @@ function paint() {
     ball.x += ball.dx;
     ball.y += ball.dy;
   }
+}
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF'.split('');
+  var color = '#';
+  for (var i = 0; i < 6; i++ ) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
 
 //add new ball when canvas is clicked
