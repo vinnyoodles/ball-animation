@@ -5,7 +5,26 @@ var width = $("#canvas").width();
 var height = $("#canvas").height();
 var ballRadius = 10
 var ball_array = [];
+var f = document.querySelector("#fps");
 
+//create fps function in fps object
+var fps = {
+  startTime : 0,
+  frameNumber : 0,
+  getFPS : function(){
+    this.frameNumber++;
+    var d = new Date().getTime(),
+        currentTime = ( d - this.startTime ) / 1000,
+        result = Math.floor( ( this.frameNumber / currentTime ) );
+
+    if( currentTime > 1 ){
+      this.startTime = new Date().getTime();
+      this.frameNumber = 0;
+    }
+    return result;
+
+  }
+};  
 
 //functions
 function addBall() {
@@ -36,6 +55,13 @@ function paint() {
     detectCollision(ball);
     moveBall(ball);
   }
+  drawFPS();
+}
+
+function drawFPS() {
+  ctx.font = "10px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("FPS: " + fps.getFPS(), width - 50, 20);
 }
 
 function drawBall(ball){
