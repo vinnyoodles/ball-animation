@@ -19,55 +19,64 @@ function addBall() {
   });
 }
 
-function paint() {
+//paint canvas with white background and black trim
+function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  //paint canvas with white background and black trim
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, width, height);
   ctx.strokeStyle = "black";
   ctx.strokeRect(0, 0, width, height);
+}
 
+function paint() {
+  drawCanvas();
   for (var i = 0; i < ball_array.length; i++) {
     var ball = ball_array[i];
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI*2);
-    ctx.fillStyle = ball.color;
-    ctx.fill();
-    ctx.closePath();
-
+    drawBall(ball);
     detectCollision(ball);
-
-    ball.x += ball.dx;
-    ball.y += ball.dy;
+    moveBall(ball);
   }
+}
+
+function drawBall(ball){
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI*2);
+  ctx.fillStyle = ball.color;
+  ctx.fill();
+  ctx.closePath();
+}
+
+function moveBall(ball){
+  ball.x += ball.dx;
+  ball.y += ball.dy;
 }
 
 //detect collision with walls and other balls
 function detectCollision(ball) {
-    if (ball.x + ball.dx > width - ballRadius || ball.x + ball.dx < ballRadius) {
-      ball.dx = -ball.dx;
-        console.log('detected wall and ball collision');
-    }
-    if (ball.y + ball.dy > height - ballRadius || ball.y + ball.dy < ballRadius) {
+  if (ball.x + ball.dx > width - ballRadius || ball.x + ball.dx < ballRadius) {
+    ball.dx = -ball.dx;
+    console.log('detected wall and ball collision');
+  }
+  if (ball.y + ball.dy > height - ballRadius || ball.y + ball.dy < ballRadius) {
+    ball.dy = -ball.dy;
+    console.log('detected wall and ball collision');
+  }
+  for (var i = 0; i < ball_array.length; i++) {
+    console.log(ball.id + ", " + i);
+    if (ball.id != i && isCollidingWithBall(ball, ball_array[i])) {
       ball.dy = -ball.dy;
-        console.log('detected wall and ball collision');
+      ball.dx = -ball.dx;
+      console.log('detected ball and ball collision');
     }
-    for (var i = 0; i < ball_array.length; i++) {
-      console.log(ball.id + ", " + i);
-      if (ball.id != i) {
-        var otherBall = ball_array[i];
-        var dx = ball.x - otherBall.x; 
-        var dy = ball.y - otherBall.y;
-        var dr = ballRadius * 2;
-        console.log(dx + ", " + dy);
-        if ((Math.pow(dx, 2) + Math.pow(dy, 2)) < Math.pow(dr, 2)) {
-          ball.dy = -ball.dy;
-          ball.dx = -ball.dx;
-          console.log('detected ball and ball collision');
-        }
-      }
-    }
+  }
+}
+
+function isCollidingWithBall(ball, otherBall) {
+  var dx = ball.x - otherBall.x; 
+  var dy = ball.y - otherBall.y;
+  var dr = ballRadius * 2;
+  console.log(dx + ", " + dy);
+  return ((Math.pow(dx, 2) + Math.pow(dy, 2)) < Math.pow(dr, 2)); 
 }
 
 //return random color code
