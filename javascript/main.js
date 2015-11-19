@@ -39,10 +39,10 @@ function moveBall(ball) {
 }
 
 function updateCollision(ball) {
-  if (ball.getPosition().getX() + ball.getRadius() > width || ball.getPosition().getX() - ball.getRadius() < 0) {
+  if (ball.getPosition().getX() + ball.getRadius() >= width || ball.getPosition().getX() - ball.getRadius() <= 0) {
     ball.invertX();
   }
-  if (ball.getPosition().getY() + ball.getRadius() > height || ball.getPosition().getY() - ball.getRadius() < 0) {
+  if (ball.getPosition().getY() + ball.getRadius() >= height || ball.getPosition().getY() - ball.getRadius() <= 0) {
     ball.invertY();
   }
   for (var i = 0; i < ball_array.length; i++) {
