@@ -1,122 +1,118 @@
 //global variables
-var canvas = $("#canvas")[0];
-var ctx = canvas.getContext("2d");
-var width = $("#canvas").width();
-var height = $("#canvas").height();
-var ballRadius = 10
-var ball_array = [];
-var f = document.querySelector("#fps");
+var canvas = $("#canvas")[0],
+    ctx = canvas.getContext("2d"),
+    width = $("#canvas").width(),
+    height = $("#canvas").height(),
+    ball_array = [],
+    f = document.querySelector("#fps");
 
-//create fps function in fps object
-var fps = {
-  startTime : 0,
-  frameNumber : 0,
-  getFPS : function(){
-    this.frameNumber++;
-    var d = new Date().getTime(),
-        currentTime = ( d - this.startTime ) / 1000,
-        result = Math.floor( ( this.frameNumber / currentTime ) );
 
-    if( currentTime > 1 ){
-      this.startTime = new Date().getTime();
-      this.frameNumber = 0;
-    }
-    return result;
-
-  }
-};  
-
-//functions
-function addBall() {
-  ball_array.push({
-    x:     Math.random() * width, 
-    y:     Math.random() * height,
-    dx:    Math.random() * 10,
-    dy:    Math.random() * 10,
-    id:    ball_array.length,
-    color: getRandomColor()
-  });
-}
-
-//paint canvas with white background and black trim
-function drawCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = "black";
-  ctx.strokeRect(0, 0, width, height);
-}
-
-function paint() {
-  drawCanvas();
-  for (var i = 0; i < ball_array.length; i++) {
-    var ball = ball_array[i];
-    drawBall(ball);
-    detectCollision(ball);
-    moveBall(ball);
-  }
-  drawFPS();
-}
-
-function drawFPS() {
-  ctx.font = "10px Arial";
-  ctx.fillStyle = "#0095DD";
-  ctx.fillText("FPS: " + fps.getFPS(), width - 50, 20);
-}
-
-function drawBall(ball){
-  ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI*2);
-  ctx.fillStyle = ball.color;
-  ctx.fill();
-  ctx.closePath();
-}
-
-function moveBall(ball){
-  ball.x += ball.dx;
-  ball.y += ball.dy;
-}
-
-//detect collision with walls and other balls
-function detectCollision(ball) {
-  if (ball.x + ball.dx > width - ballRadius || ball.x + ball.dx < ballRadius) {
-    ball.dx = -ball.dx;
-    console.log('detected wall and ball collision');
-  }
-  if (ball.y + ball.dy > height - ballRadius || ball.y + ball.dy < ballRadius) {
-    ball.dy = -ball.dy;
-    console.log('detected wall and ball collision');
-  }
-  for (var i = 0; i < ball_array.length; i++) {
-    console.log(ball.id + ", " + i);
-    if (ball.id != i && isCollidingWithBall(ball, ball_array[i])) {
-      ball.dy = -ball.dy;
-      ball.dx = -ball.dx;
-      console.log('detected ball and ball collision');
-    }
-  }
-}
-
-function isCollidingWithBall(ball, otherBall) {
-  var dx = ball.x - otherBall.x; 
-  var dy = ball.y - otherBall.y;
-  var dr = ballRadius * 2;
-  console.log(dx + ", " + dy);
-  return ((Math.pow(dx, 2) + Math.pow(dy, 2)) < Math.pow(dr, 2)); 
-}
-
-//return random color code
-function getRandomColor() {
-  var letters = '0123456789ABCDEF'.split('');
-  var color = '#';
-  for (var i = 0; i < 6; i++ ) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-}
+//run animation
+setInterval(paint, 10);
 
 //add new ball when canvas is clicked
 canvas.addEventListener("click", addBall);
 
-//paint canvas
-setInterval(paint, 20);
+//create ball object with random variables
+function addBall() {
+  var x = Math.random() * width; 
+  var y = Math.random() * height; 
+  var color = getRandomColor();
+  var radius = Math.random() * 20 + 5;
+  var mass = 0.01 * Math.pow(radius, 3); 
+  var vx = (Math.random() - 0.5) * 10;
+  var vy = (Math.random() - 0.5) * 10;
+  var id = ball_array.length; 
+  ball_array.push(new ball(x, y, color, mass, radius, vx, vy, id));
+}
+
+function moveBall(ball) {
+  var fx = ball.getFinalVelocity().getX();
+  var fy = ball.getFinalVelocity().getY();
+  var x = ball.getPosition().getX();
+  var y = ball.getPosition().getY();
+  //move final position
+  ball.setPosition(x + fx, y + fy);
+  //reset initial position and velocigy
+  ball.setInitialVelocity(fx, fy);
+  //ball.setInitialPosition(x + fx, y + fy);
+}
+
+function updateCollision(ball) {
+  if (ball.getPosition().getX() + ball.getRadius() > width || ball.getPosition().getX() - ball.getRadius() < 0) {
+    ball.invertX();
+  }
+  if (ball.getPosition().getY() + ball.getRadius() > height || ball.getPosition().getY() - ball.getRadius() < 0) {
+    ball.invertY();
+  }
+  for (var i = 0; i < ball_array.length; i++) {
+    if (ball.getId() != i && isCollidingWithBall(ball, ball_array[i])) {
+      //vector equation for 2d collision
+      debugger;
+      var other_ball = ball_array[i];
+      var mass1 = ball.getMass();
+      var mass2 = other_ball.getMass();
+      var v1 = ball.getInitialVelocity();
+      var v2 = other_ball.getInitialVelocity();
+
+      var x_distance = other_ball.getPosition().getX() - ball.getPosition().getX();
+      var y_distance = other_ball.getPosition().getY() - ball.getPosition().getY();
+
+      //create vecotrs with the difference of 
+      //distance and velocity
+      var ddistance = new vector(x_distance, y_distance); 
+      var dvelocity = v1.subtract(v2);
+
+      //check if the balls are heading toward each other
+      //to prevent balls from sticking to each other
+      if (ddistance.dot(dvelocity) > 0) {
+
+        //unit vector
+        var normal_vector = new vector(x_distance, y_distance).normalize();
+        //tangent vector is opposite reciprocal of normal vector
+        var tangent_vector = new vector(-normal_vector.getY(), normal_vector.getX());
+
+        var normal_scalar = normal_vector.dot(v1);
+        var normal_scalar2 = normal_vector.dot(v2);
+        var tangential_scalar = tangent_vector.dot(v1);
+
+        var dm = mass1  - mass2;
+        var sum_of_mass = mass1 + mass2;
+
+        var final_normal_scalar = ((normal_scalar * dm) + (2 * mass2 * normal_scalar2)) / sum_of_mass
+
+          var final_normal_vector = normal_vector.multiply(final_normal_scalar); 
+        var final_tangent_vector = tangent_vector.multiply(tangential_scalar);
+
+        var final_velocity = final_normal_vector.add(final_tangent_vector); 
+
+        //update final velocity
+        ball.setFinalVelocity(final_velocity.getX(), final_velocity.getY());
+        console.log('ball ball collision');
+      }
+    }
+  }
+
+}
+
+//check collision using pythagoras theorem
+function isCollidingWithBall(ball, otherBall) {
+  var dx = ball.getPosition().getX() - otherBall.getPosition().getX(); 
+  var dy = ball.getPosition().getY() - otherBall.getPosition().getY();
+  var dr = ball.getRadius() + otherBall.getRadius();
+  return ((Math.pow(dx, 2) + Math.pow(dy, 2)) < Math.pow(dr, 2));
+}
+
+function removeBall(ball) {
+  index = ball_array.indexOf(ball);
+  if (index > -1) {
+    ball_array.splice(index, 1);
+  }
+}
+
+function outOfBounds(ball) {
+  var x = ball.getPosition().getX();
+  var y = ball.getPosition().getY();
+  return isNaN(x) || isNaN(y) || x < 0 || y < 0 || x > width || y > height ;
+}
+
