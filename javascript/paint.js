@@ -17,6 +17,18 @@ function drawBall(ball) {
   ctx.closePath();
 }
 
+function updateTable(ball) {
+  //id mass x y v_x v_y          
+  var row = rows[ball.id + 1];
+  console.log(row);
+  row.cells[0].innerHTML = ball.id;
+  row.cells[1].innerHTML = Math.round(ball.mass * 10) / 10;
+  row.cells[2].innerHTML = Math.round(ball.position.x * 10) / 10;
+  row.cells[3].innerHTML = Math.round(ball.position.y * 10) / 10;
+  row.cells[4].innerHTML = Math.round(ball.final_velocity.x * 10) / 10;
+  row.cells[5].innerHTML = Math.round(ball.final_velocity.y * 10) / 10;
+}
+
 function paint() {
   drawCanvas();
   for (var i = 0; i < ball_array.length; i++) {
@@ -27,6 +39,7 @@ function paint() {
     updateCollision(ball);
     moveBall(ball);
     drawBall(ball);
+    updateTable(ball);
   }
   drawFPS();
   ctx.font = "10px Arial";

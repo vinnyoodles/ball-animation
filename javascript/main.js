@@ -4,7 +4,9 @@ var canvas = $("#canvas")[0],
     width = $("#canvas").width(),
     height = $("#canvas").height(),
     ball_array = [],
-    f = document.querySelector("#fps");
+    f = document.querySelector("#fps"),
+    table = document.getElementById("table"),
+    rows = document.getElementsByTagName("tr");
 
 
 //run animation
@@ -15,8 +17,8 @@ canvas.addEventListener("click", addBall);
 
 //create ball object with random variables
 function addBall() {
-  var x = Math.random() * width; 
-  var y = Math.random() * height; 
+  var x =  (Math.random() * (width/2)); 
+  var y =  (Math.random() * (height/2)); 
   var color = getRandomColor();
   var radius = Math.random() * 20 + 5;
   var mass = 0.01 * Math.pow(radius, 3); 
@@ -24,6 +26,11 @@ function addBall() {
   var vy = (Math.random() - 0.5) * 10;
   var id = ball_array.length; 
   ball_array.push(new ball(x, y, color, mass, radius, vx, vy, id));
+  var row = table.insertRow();
+  row.id = id;
+  for (var i = 0; i < 6; i ++) {
+    row.insertCell(i);
+  }
 }
 
 function moveBall(ball) {
@@ -39,16 +46,19 @@ function moveBall(ball) {
 }
 
 function updateCollision(ball) {
+  //collision with west/east wall
   if (ball.getPosition().getX() + ball.getRadius() >= width || ball.getPosition().getX() - ball.getRadius() <= 0) {
     ball.invertX();
   }
+  //collision with north/south wall
   if (ball.getPosition().getY() + ball.getRadius() >= height || ball.getPosition().getY() - ball.getRadius() <= 0) {
     ball.invertY();
   }
+  //check for collision with every other ball
   for (var i = 0; i < ball_array.length; i++) {
     if (ball.getId() != i && isCollidingWithBall(ball, ball_array[i])) {
       //vector equation for 2d collision
-      debugger;
+      //debugger;
       var other_ball = ball_array[i];
       var mass1 = ball.getMass();
       var mass2 = other_ball.getMass();
@@ -65,6 +75,7 @@ function updateCollision(ball) {
 
       //check if the balls are heading toward each other
       //to prevent balls from sticking to each other
+      //then perform collision calculation
       if (ddistance.dot(dvelocity) > 0) {
 
         //unit vector
@@ -75,19 +86,26 @@ function updateCollision(ball) {
         var normal_scalar = normal_vector.dot(v1);
         var normal_scalar2 = normal_vector.dot(v2);
         var tangential_scalar = tangent_vector.dot(v1);
+        var tangential_scalar2 = tangent_vector.dot(v2);
 
-        var dm = mass1  - mass2;
+        var dm = mass1 - mass2;
         var sum_of_mass = mass1 + mass2;
 
-        var final_normal_scalar = ((normal_scalar * dm) + (2 * mass2 * normal_scalar2)) / sum_of_mass
+        var final_normal_scalar = ((normal_scalar * dm) + (2 * mass2 * normal_scalar2)) / sum_of_mass;
+        var final_normal_scalar2 = ((normal_scalar2 * -dm) + (2 * mass1 * normal_scalar)) / sum_of_mass;
 
-          var final_normal_vector = normal_vector.multiply(final_normal_scalar); 
+        var final_normal_vector = normal_vector.multiply(final_normal_scalar); 
+        var final_normal_vector2 = normal_vector.multiply(final_normal_scalar2); 
         var final_tangent_vector = tangent_vector.multiply(tangential_scalar);
+        var final_tangent_vector2 = tangent_vector.multiply(tangential_scalar2);
 
         var final_velocity = final_normal_vector.add(final_tangent_vector); 
+        var final_velocity2 = final_normal_vector2.add(final_tangent_vector2); 
 
         //update final velocity
         ball.setFinalVelocity(final_velocity.getX(), final_velocity.getY());
+        other_ball.setFinalVelocity(final_velocity2.getX(), final_velocity2.getY());
+
         console.log('ball ball collision');
       }
     }
@@ -107,6 +125,7 @@ function removeBall(ball) {
   index = ball_array.indexOf(ball);
   if (index > -1) {
     ball_array.splice(index, 1);
+    table.deleteRow(ball.id + 1);
   }
 }
 
